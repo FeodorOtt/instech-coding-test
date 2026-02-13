@@ -22,7 +22,7 @@ public class ClaimsController : ControllerBase
     /// Retrieves all claims.
     /// </summary>
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Claim>>> GetAsync()
+    public async Task<ActionResult<IEnumerable<ClaimResponse>>> GetAsync()
     {
         var claims = await _claimsService.GetAllAsync();
         return Ok(claims);
@@ -33,7 +33,7 @@ public class ClaimsController : ControllerBase
     /// </summary>
     /// <param name="id">The unique claim identifier.</param>
     [HttpGet("{id}")]
-    public async Task<ActionResult<Claim>> GetAsync(string id)
+    public async Task<ActionResult<ClaimResponse>> GetAsync(string id)
     {
         var claim = await _claimsService.GetByIdAsync(id);
         if (claim is null)
@@ -45,11 +45,11 @@ public class ClaimsController : ControllerBase
     /// <summary>
     /// Creates a new claim.
     /// </summary>
-    /// <param name="claim">The claim to create.</param>
+    /// <param name="request">The claim creation request.</param>
     [HttpPost]
-    public async Task<ActionResult<Claim>> CreateAsync(Claim claim)
+    public async Task<ActionResult<ClaimResponse>> CreateAsync(CreateClaimRequest request)
     {
-        var created = await _claimsService.CreateAsync(claim);
+        var created = await _claimsService.CreateAsync(request);
         return Ok(created);
     }
 

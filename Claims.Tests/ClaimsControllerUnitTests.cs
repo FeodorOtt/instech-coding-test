@@ -20,7 +20,7 @@ public class ClaimsControllerUnitTests
     [Fact]
     public async Task GetAll_ReturnsOkWithClaims()
     {
-        var claims = new List<Claim> { new() { Id = "1", Name = "Test" } };
+        var claims = new List<ClaimResponse> { new() { Id = "1", Name = "Test" } };
         _claimsService.GetAllAsync().Returns(claims);
 
         var result = await _controller.GetAsync();
@@ -32,7 +32,7 @@ public class ClaimsControllerUnitTests
     [Fact]
     public async Task GetById_ExistingClaim_ReturnsOk()
     {
-        var claim = new Claim { Id = "1", Name = "Test" };
+        var claim = new ClaimResponse { Id = "1", Name = "Test" };
         _claimsService.GetByIdAsync("1").Returns(claim);
 
         var result = await _controller.GetAsync("1");
@@ -44,7 +44,7 @@ public class ClaimsControllerUnitTests
     [Fact]
     public async Task GetById_NonExistingClaim_ReturnsNotFound()
     {
-        _claimsService.GetByIdAsync("missing").Returns((Claim?)null);
+        _claimsService.GetByIdAsync("missing").Returns((ClaimResponse?)null);
 
         var result = await _controller.GetAsync("missing");
 
@@ -54,11 +54,11 @@ public class ClaimsControllerUnitTests
     [Fact]
     public async Task Create_ReturnsOkWithCreatedClaim()
     {
-        var claim = new Claim { Name = "Test", DamageCost = 500 };
-        var created = new Claim { Id = "new-id", Name = "Test", DamageCost = 500 };
-        _claimsService.CreateAsync(claim).Returns(created);
+        var request = new CreateClaimRequest { Name = "Test", DamageCost = 500, CoverId = "c1", Created = new DateOnly(2025, 6, 1) };
+        var created = new ClaimResponse { Id = "new-id", Name = "Test", DamageCost = 500 };
+        _claimsService.CreateAsync(request).Returns(created);
 
-        var result = await _controller.CreateAsync(claim);
+        var result = await _controller.CreateAsync(request);
 
         var okResult = Assert.IsType<OkObjectResult>(result.Result);
         Assert.Same(created, okResult.Value);

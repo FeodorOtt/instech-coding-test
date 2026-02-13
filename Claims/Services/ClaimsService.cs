@@ -22,35 +22,50 @@ public class ClaimsService : IClaimsService
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<Claim>> GetAllAsync()
+    public async Task<IEnumerable<ClaimResponse>> GetAllAsync()
     {
-        return await _context.Claims.ToListAsync();
+        var claims = await _context.Claims.ToListAsync();
+        return claims.Select(ToResponse);
     }
 
     /// <inheritdoc />
-    public async Task<Claim?> GetByIdAsync(string id)
+    public async Task<ClaimResponse?> GetByIdAsync(string id)
     {
-        return await _context.Claims
+        var claim = await _context.Claims
             .Where(c => c.Id == id)
             .SingleOrDefaultAsync();
+
+        return claim is null ? null : ToResponse(claim);
     }
 
     /// <inheritdoc />
-    public async Task<Claim> CreateAsync(Claim claim)
+    public async Task<ClaimResponse> CreateAsync(CreateClaimRequest request)
     {
-        await ValidateClaimAsync(claim);
+        await ValidateRequestAsync(request);
 
-        claim.Id = Guid.NewGuid().ToString();
+        var claim = new Claim
+        {
+            Id = Guid.NewGuid().ToString(),
+            CoverId = request.CoverId,
+            Created = request.Created,
+            Name = request.Name,
+            Type = request.Type,
+            DamageCost = request.DamageCost
+        };
+
         _context.Claims.Add(claim);
         await _context.SaveChangesAsync();
         await _auditer.AuditClaimAsync(claim.Id, "POST");
-        return claim;
+        return ToResponse(claim);
     }
 
     /// <inheritdoc />
     public async Task DeleteAsync(string id)
     {
-        var claim = await GetByIdAsync(id);
+        var claim = await _context.Claims
+            .Where(c => c.Id == id)
+            .SingleOrDefaultAsync();
+
         if (claim is not null)
         {
             _context.Claims.Remove(claim);
@@ -59,24 +74,34 @@ public class ClaimsService : IClaimsService
         }
     }
 
-    private async Task ValidateClaimAsync(Claim claim)
+    private async Task ValidateRequestAsync(CreateClaimRequest request)
     {
         var errors = new Dictionary<string, string>();
 
-        if (claim.DamageCost > 100_000)
-            errors.Add(nameof(claim.DamageCost), "Damage cost cannot exceed 100,000.");
+        if (request.DamageCost > 100_000)
+            errors.Add(nameof(request.DamageCost), "Damage cost cannot exceed 100,000.");
 
-        var cover = await _coversService.GetByIdAsync(claim.CoverId);
+        var cover = await _coversService.GetByIdAsync(request.CoverId);
         if (cover is null)
         {
-            errors.Add(nameof(claim.CoverId), "Related cover not found.");
+            errors.Add(nameof(request.CoverId), "Related cover not found.");
         }
-        else if (claim.Created < cover.StartDate || claim.Created > cover.EndDate)
+        else if (request.Created < cover.StartDate || request.Created > cover.EndDate)
         {
-            errors.Add(nameof(claim.Created), "Created date must be within the period of the related cover.");
+            errors.Add(nameof(request.Created), "Created date must be within the period of the related cover.");
         }
 
         if (errors.Count > 0)
             throw new ValidationException(errors);
     }
+
+    private static ClaimResponse ToResponse(Claim claim) => new()
+    {
+        Id = claim.Id,
+        CoverId = claim.CoverId,
+        Created = claim.Created,
+        Name = claim.Name,
+        Type = claim.Type,
+        DamageCost = claim.DamageCost
+    };
 }

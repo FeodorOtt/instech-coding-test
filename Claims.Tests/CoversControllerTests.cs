@@ -21,7 +21,7 @@ public class CoversControllerTests
     [Fact]
     public async Task GetAll_ReturnsOkWithCovers()
     {
-        var covers = new List<Cover> { new() { Id = "1" } };
+        var covers = new List<CoverResponse> { new() { Id = "1" } };
         _coversService.GetAllAsync().Returns(covers);
 
         var result = await _controller.GetAsync();
@@ -33,7 +33,7 @@ public class CoversControllerTests
     [Fact]
     public async Task GetById_ExistingCover_ReturnsOk()
     {
-        var cover = new Cover { Id = "1" };
+        var cover = new CoverResponse { Id = "1" };
         _coversService.GetByIdAsync("1").Returns(cover);
 
         var result = await _controller.GetAsync("1");
@@ -45,7 +45,7 @@ public class CoversControllerTests
     [Fact]
     public async Task GetById_NonExistingCover_ReturnsNotFound()
     {
-        _coversService.GetByIdAsync("missing").Returns((Cover?)null);
+        _coversService.GetByIdAsync("missing").Returns((CoverResponse?)null);
 
         var result = await _controller.GetAsync("missing");
 
@@ -56,7 +56,7 @@ public class CoversControllerTests
     public async Task Create_ReturnsOkWithCreatedCover()
     {
         var request = new CreateCoverRequest { StartDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1), EndDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(30), Type = CoverType.Yacht };
-        var created = new Cover { Id = "new-id", Premium = 50000m };
+        var created = new CoverResponse { Id = "new-id", Premium = 50000m };
         _coversService.CreateAsync(request).Returns(created);
 
         var result = await _controller.CreateAsync(request);

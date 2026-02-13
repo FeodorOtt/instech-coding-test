@@ -36,7 +36,7 @@ public class CoversController : ControllerBase
     /// Retrieves all covers.
     /// </summary>
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Cover>>> GetAsync()
+    public async Task<ActionResult<IEnumerable<CoverResponse>>> GetAsync()
     {
         var covers = await _coversService.GetAllAsync();
         return Ok(covers);
@@ -47,7 +47,7 @@ public class CoversController : ControllerBase
     /// </summary>
     /// <param name="id">The unique cover identifier.</param>
     [HttpGet("{id}")]
-    public async Task<ActionResult<Cover>> GetAsync(string id)
+    public async Task<ActionResult<CoverResponse>> GetAsync(string id)
     {
         var cover = await _coversService.GetByIdAsync(id);
         if (cover is null)
@@ -61,7 +61,7 @@ public class CoversController : ControllerBase
     /// </summary>
     /// <param name="request">The cover creation request (start date, end date, and type).</param>
     [HttpPost]
-    public async Task<ActionResult<Cover>> CreateAsync(CreateCoverRequest request)
+    public async Task<ActionResult<CoverResponse>> CreateAsync(CreateCoverRequest request)
     {
         var created = await _coversService.CreateAsync(request);
         return Ok(created);

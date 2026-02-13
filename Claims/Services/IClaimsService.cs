@@ -10,21 +10,21 @@ public interface IClaimsService
     /// <summary>
     /// Retrieves all claims.
     /// </summary>
-    Task<IEnumerable<Claim>> GetAllAsync();
+    Task<IEnumerable<ClaimResponse>> GetAllAsync();
 
     /// <summary>
     /// Retrieves a single claim by its identifier.
     /// </summary>
     /// <param name="id">The unique claim identifier.</param>
     /// <returns>The matching claim, or <c>null</c> if not found.</returns>
-    Task<Claim?> GetByIdAsync(string id);
+    Task<ClaimResponse?> GetByIdAsync(string id);
 
     /// <summary>
     /// Creates a new claim.
     /// </summary>
-    /// <param name="claim">The claim to create. The <see cref="Claim.Id"/> will be assigned automatically.</param>
+    /// <param name="request">The claim creation request.</param>
     /// <returns>The created claim with its assigned identifier.</returns>
-    Task<Claim> CreateAsync(Claim claim);
+    Task<ClaimResponse> CreateAsync(CreateClaimRequest request);
 
     /// <summary>
     /// Deletes a claim by its identifier.

@@ -22,21 +22,24 @@ public class CoversService : ICoversService
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<Cover>> GetAllAsync()
+    public async Task<IEnumerable<CoverResponse>> GetAllAsync()
     {
-        return await _context.Covers.ToListAsync();
+        var covers = await _context.Covers.ToListAsync();
+        return covers.Select(ToResponse);
     }
 
     /// <inheritdoc />
-    public async Task<Cover?> GetByIdAsync(string id)
+    public async Task<CoverResponse?> GetByIdAsync(string id)
     {
-        return await _context.Covers
+        var cover = await _context.Covers
             .Where(c => c.Id == id)
             .SingleOrDefaultAsync();
+
+        return cover is null ? null : ToResponse(cover);
     }
 
     /// <inheritdoc />
-    public async Task<Cover> CreateAsync(CreateCoverRequest request)
+    public async Task<CoverResponse> CreateAsync(CreateCoverRequest request)
     {
         ValidateCreateRequest(request);
 
@@ -52,7 +55,7 @@ public class CoversService : ICoversService
         _context.Covers.Add(cover);
         await _context.SaveChangesAsync();
         await _auditer.AuditCoverAsync(cover.Id, "POST");
-        return cover;
+        return ToResponse(cover);
     }
 
     private static void ValidateCreateRequest(CreateCoverRequest request)
@@ -72,12 +75,24 @@ public class CoversService : ICoversService
     /// <inheritdoc />
     public async Task DeleteAsync(string id)
     {
-        await _auditer.AuditCoverAsync(id, "DELETE");
-        var cover = await GetByIdAsync(id);
+        var cover = await _context.Covers
+            .Where(c => c.Id == id)
+            .SingleOrDefaultAsync();
+
         if (cover is not null)
         {
             _context.Covers.Remove(cover);
             await _context.SaveChangesAsync();
+            await _auditer.AuditCoverAsync(id, "DELETE");
         }
     }
+
+    private static CoverResponse ToResponse(Cover cover) => new()
+    {
+        Id = cover.Id,
+        StartDate = cover.StartDate,
+        EndDate = cover.EndDate,
+        Type = cover.Type,
+        Premium = cover.Premium
+    };
 }
