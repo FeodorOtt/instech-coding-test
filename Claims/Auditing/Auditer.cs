@@ -1,38 +1,30 @@
-﻿namespace Claims.Auditing
+﻿namespace Claims.Auditing;
+
+/// <summary>
+/// Enqueues audit records onto an in-memory <see cref="IAuditQueue"/> for
+/// background persistence. This returns almost immediately and never blocks
+/// the calling HTTP request with a database write.
+/// </summary>
+public class Auditer : IAuditer
 {
-    public class Auditer
+    private readonly IAuditQueue _queue;
+
+    public Auditer(IAuditQueue queue)
     {
-        private readonly AuditContext _auditContext;
+        _queue = queue;
+    }
 
-        public Auditer(AuditContext auditContext)
-        {
-            _auditContext = auditContext;
-        }
+    /// <inheritdoc />
+    public async Task AuditClaimAsync(string claimId, string httpRequestType)
+    {
+        await _queue.EnqueueAsync(
+            new AuditMessage(claimId, httpRequestType, AuditEntityType.Claim, DateTime.UtcNow));
+    }
 
-        public void AuditClaim(string id, string httpRequestType)
-        {
-            var claimAudit = new ClaimAudit()
-            {
-                Created = DateTime.Now,
-                HttpRequestType = httpRequestType,
-                ClaimId = id
-            };
-
-            _auditContext.Add(claimAudit);
-            _auditContext.SaveChanges();
-        }
-        
-        public void AuditCover(string id, string httpRequestType)
-        {
-            var coverAudit = new CoverAudit()
-            {
-                Created = DateTime.Now,
-                HttpRequestType = httpRequestType,
-                CoverId = id
-            };
-
-            _auditContext.Add(coverAudit);
-            _auditContext.SaveChanges();
-        }
+    /// <inheritdoc />
+    public async Task AuditCoverAsync(string coverId, string httpRequestType)
+    {
+        await _queue.EnqueueAsync(
+            new AuditMessage(coverId, httpRequestType, AuditEntityType.Cover, DateTime.UtcNow));
     }
 }

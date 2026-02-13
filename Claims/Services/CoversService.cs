@@ -1,0 +1,83 @@
+using Claims.Auditing;
+using Claims.Data;
+using Claims.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace Claims.Services;
+
+/// <summary>
+/// Manages CRUD operations for insurance covers, including premium computation and audit logging.
+/// </summary>
+public class CoversService : ICoversService
+{
+    private readonly ClaimsContext _context;
+    private readonly IAuditer _auditer;
+    private readonly IPremiumCalculator _premiumCalculator;
+
+    public CoversService(ClaimsContext context, IAuditer auditer, IPremiumCalculator premiumCalculator)
+    {
+        _context = context;
+        _auditer = auditer;
+        _premiumCalculator = premiumCalculator;
+    }
+
+    /// <inheritdoc />
+    public async Task<IEnumerable<Cover>> GetAllAsync()
+    {
+        return await _context.Covers.ToListAsync();
+    }
+
+    /// <inheritdoc />
+    public async Task<Cover?> GetByIdAsync(string id)
+    {
+        return await _context.Covers
+            .Where(c => c.Id == id)
+            .SingleOrDefaultAsync();
+    }
+
+    /// <inheritdoc />
+    public async Task<Cover> CreateAsync(CreateCoverRequest request)
+    {
+        ValidateCreateRequest(request);
+
+        var cover = new Cover
+        {
+            Id = Guid.NewGuid().ToString(),
+            StartDate = request.StartDate,
+            EndDate = request.EndDate,
+            Type = request.Type,
+            Premium = _premiumCalculator.ComputePremium(request.StartDate, request.EndDate, request.Type)
+        };
+
+        _context.Covers.Add(cover);
+        await _context.SaveChangesAsync();
+        await _auditer.AuditCoverAsync(cover.Id, "POST");
+        return cover;
+    }
+
+    private static void ValidateCreateRequest(CreateCoverRequest request)
+    {
+        var errors = new Dictionary<string, string>();
+
+        if (request.StartDate < DateOnly.FromDateTime(DateTime.UtcNow))
+            errors.Add(nameof(request.StartDate), "Start date cannot be in the past.");
+
+        if (request.EndDate.DayNumber - request.StartDate.DayNumber > 365)
+            errors.Add(nameof(request.EndDate), "Total insurance period cannot exceed 1 year.");
+
+        if (errors.Count > 0)
+            throw new ValidationException(errors);
+    }
+
+    /// <inheritdoc />
+    public async Task DeleteAsync(string id)
+    {
+        await _auditer.AuditCoverAsync(id, "DELETE");
+        var cover = await GetByIdAsync(id);
+        if (cover is not null)
+        {
+            _context.Covers.Remove(cover);
+            await _context.SaveChangesAsync();
+        }
+    }
+}
