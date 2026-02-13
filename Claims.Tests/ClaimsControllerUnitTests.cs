@@ -1,4 +1,5 @@
 using Claims.Controllers;
+using Claims.Models;
 using Claims.Services;
 using Microsoft.AspNetCore.Mvc;
 using NSubstitute;

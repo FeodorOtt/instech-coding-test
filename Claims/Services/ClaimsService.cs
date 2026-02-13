@@ -1,5 +1,6 @@
 using Claims.Auditing;
 using Claims.Data;
+using Claims.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Claims.Services;
@@ -49,12 +50,12 @@ public class ClaimsService : IClaimsService
     /// <inheritdoc />
     public async Task DeleteAsync(string id)
     {
-        await _auditer.AuditClaimAsync(id, "DELETE");
         var claim = await GetByIdAsync(id);
         if (claim is not null)
         {
             _context.Claims.Remove(claim);
             await _context.SaveChangesAsync();
+            await _auditer.AuditClaimAsync(id, "DELETE");
         }
     }
 
