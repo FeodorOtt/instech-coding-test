@@ -27,9 +27,9 @@ public class CoversController : ControllerBase
     /// <param name="endDate">End date of the insurance period.</param>
     /// <param name="coverType">The type of cover.</param>
     [HttpPost("compute")]
-    public ActionResult<decimal> ComputePremiumAsync(DateOnly startDate, DateOnly endDate, CoverType coverType)
+    public async Task<ActionResult<decimal>> ComputePremiumAsync(DateOnly startDate, DateOnly endDate, CoverType coverType)
     {
-        return Ok(_premiumCalculator.ComputePremium(startDate, endDate, coverType));
+        return Ok(await Task.FromResult(_premiumCalculator.ComputePremium(startDate, endDate, coverType)));
     }
 
     /// <summary>

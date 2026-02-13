@@ -75,13 +75,13 @@ public class CoversControllerTests
     }
 
     [Fact]
-    public void ComputePremium_ReturnsOkWithValue()
+    public async Task ComputePremium_ReturnsOkWithValue()
     {
         var start = new DateOnly(2025, 6, 1);
         var end = new DateOnly(2025, 7, 1);
         _premiumCalculator.ComputePremium(start, end, CoverType.Yacht).Returns(41250m);
 
-        var result = _controller.ComputePremiumAsync(start, end, CoverType.Yacht);
+        var result = await _controller.ComputePremiumAsync(start, end, CoverType.Yacht);
 
         var okResult = Assert.IsType<OkObjectResult>(result.Result);
         Assert.Equal(41250m, okResult.Value);
