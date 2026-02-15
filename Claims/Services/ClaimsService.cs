@@ -2,6 +2,7 @@ using Claims.Auditing;
 using Claims.Data;
 using Claims.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace Claims.Services;
 
@@ -13,12 +14,14 @@ public class ClaimsService : IClaimsService
     private readonly ClaimsContext _context;
     private readonly IAuditer _auditer;
     private readonly ICoversService _coversService;
+    private readonly ClaimsSettings _settings;
 
-    public ClaimsService(ClaimsContext context, IAuditer auditer, ICoversService coversService)
+    public ClaimsService(ClaimsContext context, IAuditer auditer, ICoversService coversService, IOptions<ClaimsSettings> settings)
     {
         _context = context;
         _auditer = auditer;
         _coversService = coversService;
+        _settings = settings.Value;
     }
 
     /// <inheritdoc />
@@ -78,8 +81,8 @@ public class ClaimsService : IClaimsService
     {
         var errors = new Dictionary<string, string>();
 
-        if (request.DamageCost > 100_000)
-            errors.Add(nameof(request.DamageCost), "Damage cost cannot exceed 100,000.");
+        if (request.DamageCost > _settings.MaxDamageCost)
+            errors.Add(nameof(request.DamageCost), $"Damage cost cannot exceed {_settings.MaxDamageCost:N0}.");
 
         var cover = await _coversService.GetByIdAsync(request.CoverId);
         if (cover is null)
@@ -97,10 +100,10 @@ public class ClaimsService : IClaimsService
 
     private static ClaimResponse ToResponse(Claim claim) => new()
     {
-        Id = claim.Id,
-        CoverId = claim.CoverId,
+        Id = claim.Id!,
+        CoverId = claim.CoverId!,
         Created = claim.Created,
-        Name = claim.Name,
+        Name = claim.Name!,
         Type = claim.Type,
         DamageCost = claim.DamageCost
     };

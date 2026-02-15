@@ -22,6 +22,7 @@ public class ClaimValidationTests
         var request = new CreateClaimRequest
         {
             CoverId = "cover-1",
+            Name = "Test Claim",
             Created = new DateOnly(2025, 6, 1),
             DamageCost = 100_001m
         };
@@ -46,6 +47,7 @@ public class ClaimValidationTests
         var request = new CreateClaimRequest
         {
             CoverId = "cover-1",
+            Name = "Test Claim",
             Created = new DateOnly(2025, 6, 1),
             DamageCost = 100_000m
         };
@@ -66,6 +68,7 @@ public class ClaimValidationTests
         var request = new CreateClaimRequest
         {
             CoverId = "missing",
+            Name = "Test Claim",
             Created = new DateOnly(2025, 6, 1),
             DamageCost = 500m
         };
@@ -90,6 +93,7 @@ public class ClaimValidationTests
         var request = new CreateClaimRequest
         {
             CoverId = "cover-1",
+            Name = "Test Claim",
             Created = new DateOnly(2025, 2, 28),
             DamageCost = 500m
         };
@@ -114,6 +118,7 @@ public class ClaimValidationTests
         var request = new CreateClaimRequest
         {
             CoverId = "cover-1",
+            Name = "Test Claim",
             Created = new DateOnly(2025, 7, 1),
             DamageCost = 500m
         };
@@ -133,6 +138,7 @@ public class ClaimValidationTests
         var request = new CreateClaimRequest
         {
             CoverId = "missing",
+            Name = "Test Claim",
             Created = new DateOnly(2025, 6, 1),
             DamageCost = 200_000m
         };

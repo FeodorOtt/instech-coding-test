@@ -1,23 +1,39 @@
 using Claims.Models;
 using Claims.Services;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Xunit;
 
 namespace Claims.Tests;
 
 public class PremiumCalculatorTests
 {
-    private readonly PremiumCalculator _calculator = new();
+    private static readonly PremiumSettings Settings = LoadSettings();
+    private readonly PremiumCalculator _calculator = new(Options.Create(Settings));
+
+    private static PremiumSettings LoadSettings()
+    {
+        var configuration = new ConfigurationBuilder()
+            .SetBasePath(AppContext.BaseDirectory)
+            .AddJsonFile("appsettings.json")
+            .Build();
+
+        var settings = new PremiumSettings();
+        configuration.GetSection(PremiumSettings.SectionName).Bind(settings);
+        return settings;
+    }
 
     [Theory]
-    [InlineData(CoverType.Yacht, 1375)]        // 1250 * 1.1
-    [InlineData(CoverType.PassengerShip, 1500)] // 1250 * 1.2
-    [InlineData(CoverType.Tanker, 1875)]        // 1250 * 1.5
-    [InlineData(CoverType.ContainerShip, 1625)] // 1250 * 1.3
-    [InlineData(CoverType.BulkCarrier, 1625)]   // 1250 * 1.3
-    public void ComputePremium_SingleDay_ReturnsCorrectBaseRate(CoverType coverType, decimal expectedDayRate)
+    [InlineData(CoverType.Yacht, 1.1)]
+    [InlineData(CoverType.PassengerShip, 1.2)]
+    [InlineData(CoverType.Tanker, 1.5)]
+    [InlineData(CoverType.ContainerShip, 1.3)]
+    [InlineData(CoverType.BulkCarrier, 1.3)]
+    public void ComputePremium_SingleDay_ReturnsCorrectBaseRate(CoverType coverType, decimal multiplier)
     {
         var start = new DateOnly(2025, 1, 1);
         var end = start.AddDays(1);
+        var expectedDayRate = Settings.BaseDayRate * multiplier;
 
         var premium = _calculator.ComputePremium(start, end, coverType);
 

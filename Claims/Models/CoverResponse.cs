@@ -5,7 +5,7 @@ namespace Claims.Models;
 /// </summary>
 public class CoverResponse
 {
-    public string Id { get; set; }
+    public required string Id { get; set; }
     public DateOnly StartDate { get; set; }
     public DateOnly EndDate { get; set; }
     public CoverType Type { get; set; }

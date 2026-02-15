@@ -6,9 +6,9 @@ namespace Claims.Models;
 /// </summary>
 public class CreateClaimRequest
 {
-    public string CoverId { get; set; }
+    public required string CoverId { get; set; }
     public DateOnly Created { get; set; }
-    public string Name { get; set; }
+    public required string Name { get; set; }
     public ClaimType Type { get; set; }
     public decimal DamageCost { get; set; }
 }

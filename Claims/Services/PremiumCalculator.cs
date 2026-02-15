@@ -1,4 +1,5 @@
 using Claims.Models;
+using Microsoft.Extensions.Options;
 
 namespace Claims.Services;
 
@@ -7,7 +8,7 @@ namespace Claims.Services;
 /// </summary>
 /// <remarks>
 /// <para>Premium depends on the type of the covered object and the length of the insurance period.</para>
-/// <para>Base day rate: 1250.</para>
+/// <para>Base day rate is configured via <see cref="PremiumSettings.BaseDayRate"/>.</para>
 /// <para>Multipliers: Yacht +10%, Passenger ship +20%, Tanker +50%, other types +30%.</para>
 /// <para>Progressive discounts by period length:</para>
 /// <list type="bullet">
@@ -18,7 +19,13 @@ namespace Claims.Services;
 /// </remarks>
 public class PremiumCalculator : IPremiumCalculator
 {
-    private const decimal BaseDayRate = 1250m;
+    private readonly decimal _baseDayRate;
+
+    public PremiumCalculator(IOptions<PremiumSettings> options)
+    {
+        _baseDayRate = options.Value.BaseDayRate;
+    }
+
     private const int FullRateDays = 30;
     private const int MidTierDays = 150;  // days 31–180
 
@@ -26,7 +33,7 @@ public class PremiumCalculator : IPremiumCalculator
     public decimal ComputePremium(DateOnly startDate, DateOnly endDate, CoverType coverType)
     {
         var totalDays = endDate.DayNumber - startDate.DayNumber;
-        var premiumPerDay = BaseDayRate * GetMultiplier(coverType);
+        var premiumPerDay = _baseDayRate * GetMultiplier(coverType);
 
         var fullRateDays = Math.Min(totalDays, FullRateDays);
         var midTierDays = Math.Min(Math.Max(totalDays - FullRateDays, 0), MidTierDays);

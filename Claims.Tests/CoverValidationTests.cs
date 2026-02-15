@@ -7,7 +7,7 @@ namespace Claims.Tests;
 public class CoverValidationTests
 {
     [Fact]
-    public void CreateCover_StartDateInPast_ThrowsValidationException()
+    public async Task CreateCover_StartDateInPast_ThrowsValidationException()
     {
         var service = CoversServiceTestHelper.Create();
         var request = new CreateCoverRequest
@@ -17,13 +17,13 @@ public class CoverValidationTests
             Type = CoverType.Yacht
         };
 
-        var ex = Assert.ThrowsAsync<ValidationException>(() => service.CreateAsync(request)).Result;
+        var ex = await Assert.ThrowsAsync<ValidationException>(() => service.CreateAsync(request));
 
         Assert.Contains(nameof(request.StartDate), ex.Errors.Keys);
     }
 
     [Fact]
-    public void CreateCover_PeriodExceedsOneYear_ThrowsValidationException()
+    public async Task CreateCover_PeriodExceedsOneYear_ThrowsValidationException()
     {
         var service = CoversServiceTestHelper.Create();
         var request = new CreateCoverRequest
@@ -33,13 +33,13 @@ public class CoverValidationTests
             Type = CoverType.Yacht
         };
 
-        var ex = Assert.ThrowsAsync<ValidationException>(() => service.CreateAsync(request)).Result;
+        var ex = await Assert.ThrowsAsync<ValidationException>(() => service.CreateAsync(request));
 
         Assert.Contains(nameof(request.EndDate), ex.Errors.Keys);
     }
 
     [Fact]
-    public void CreateCover_StartDateInPastAndPeriodExceedsOneYear_ReturnsBothErrors()
+    public async Task CreateCover_StartDateInPastAndPeriodExceedsOneYear_ReturnsBothErrors()
     {
         var service = CoversServiceTestHelper.Create();
         var request = new CreateCoverRequest
@@ -49,7 +49,7 @@ public class CoverValidationTests
             Type = CoverType.Yacht
         };
 
-        var ex = Assert.ThrowsAsync<ValidationException>(() => service.CreateAsync(request)).Result;
+        var ex = await Assert.ThrowsAsync<ValidationException>(() => service.CreateAsync(request));
 
         Assert.Equal(2, ex.Errors.Count);
         Assert.Contains(nameof(request.StartDate), ex.Errors.Keys);
@@ -57,7 +57,7 @@ public class CoverValidationTests
     }
 
     [Fact]
-    public void CreateCover_ExactlyOneYear_DoesNotThrowPeriodError()
+    public async Task CreateCover_ExactlyOneYear_DoesNotThrowPeriodError()
     {
         var service = CoversServiceTestHelper.Create();
         var request = new CreateCoverRequest
@@ -69,7 +69,7 @@ public class CoverValidationTests
 
         // Should not throw for period — 365 days is exactly the limit
         // This may still fail for other reasons (e.g., DB) but should not throw ValidationException
-        var record = Record.ExceptionAsync(() => service.CreateAsync(request)).Result;
+        var record = await Record.ExceptionAsync(() => service.CreateAsync(request));
 
         Assert.True(record is not ValidationException);
     }

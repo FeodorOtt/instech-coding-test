@@ -51,6 +51,10 @@ builder.Services.AddScoped<IAuditer, Auditer>();
 builder.Services.AddScoped<IClaimsService, ClaimsService>();
 builder.Services.AddScoped<ICoversService, CoversService>();
 builder.Services.AddSingleton<IPremiumCalculator, PremiumCalculator>();
+builder.Services.Configure<ClaimsSettings>(
+    builder.Configuration.GetSection(ClaimsSettings.SectionName));
+builder.Services.Configure<PremiumSettings>(
+    builder.Configuration.GetSection(PremiumSettings.SectionName));
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

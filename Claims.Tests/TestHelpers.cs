@@ -2,6 +2,7 @@ using Claims.Auditing;
 using Claims.Data;
 using Claims.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using NSubstitute;
 
 namespace Claims.Tests;
@@ -20,7 +21,7 @@ internal static class CoversServiceTestHelper
         return new CoversService(
             context,
             auditer ?? Substitute.For<IAuditer>(),
-            premiumCalculator ?? new PremiumCalculator());
+            premiumCalculator ?? new PremiumCalculator(Options.Create(new PremiumSettings())));
     }
 }
 
@@ -38,6 +39,7 @@ internal static class ClaimsServiceTestHelper
         return new ClaimsService(
             context,
             auditer ?? Substitute.For<IAuditer>(),
-            coversService ?? Substitute.For<ICoversService>());
+            coversService ?? Substitute.For<ICoversService>(),
+            Options.Create(new ClaimsSettings()));
     }
 }

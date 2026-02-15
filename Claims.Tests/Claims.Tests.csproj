@@ -23,4 +23,8 @@
     <ProjectReference Include="..\Claims\Claims.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="..\Claims\appsettings.json" Link="appsettings.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>
