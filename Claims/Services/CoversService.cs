@@ -65,6 +65,9 @@ public class CoversService : ICoversService
         if (request.StartDate < DateOnly.FromDateTime(DateTime.UtcNow))
             errors.Add(nameof(request.StartDate), "Start date cannot be in the past.");
 
+        if (request.EndDate <= request.StartDate)
+            errors.Add(nameof(request.EndDate), "End date must be after start date.");
+
         if (request.EndDate.DayNumber - request.StartDate.DayNumber > 365)
             errors.Add(nameof(request.EndDate), "Total insurance period cannot exceed 1 year.");
 
