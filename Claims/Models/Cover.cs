@@ -1,19 +1,17 @@
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace Claims;
+namespace Claims.Models;
 
 public class Cover
 {
     [BsonId]
-    public string Id { get; set; }
+    public string Id { get; set; } = string.Empty;
 
     [BsonElement("startDate")]
-    [BsonDateTimeOptions(DateOnly = true)]
-    public DateTime StartDate { get; set; }
+    public DateOnly StartDate { get; set; }
 
     [BsonElement("endDate")]
-    [BsonDateTimeOptions(DateOnly = true)]
-    public DateTime EndDate { get; set; }
+    public DateOnly EndDate { get; set; }
 
     [BsonElement("claimType")]
     public CoverType Type { get; set; }

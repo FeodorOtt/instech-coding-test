@@ -1,99 +1,66 @@
-using Claims.Auditing;
+using Claims.Models;
+using Claims.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using MongoDB.EntityFrameworkCore.Extensions;
 
+namespace Claims.Controllers;
 
-namespace Claims.Controllers
+/// <summary>
+/// REST API controller for managing insurance claims.
+/// </summary>
+[ApiController]
+[Route("[controller]")]
+public class ClaimsController : ControllerBase
 {
-    [ApiController]
-    [Route("[controller]")]
-    public class ClaimsController : ControllerBase
+    private readonly IClaimsService _claimsService;
+
+    public ClaimsController(IClaimsService claimsService)
     {
-        private readonly ILogger<ClaimsController> _logger;
-        private readonly ClaimsContext _claimsContext;
-        private readonly Auditer _auditer;
-
-        public ClaimsController(ILogger<ClaimsController> logger, ClaimsContext claimsContext, AuditContext auditContext)
-        {
-            _logger = logger;
-            _claimsContext = claimsContext;
-            _auditer = new Auditer(auditContext);
-        }
-
-        [HttpGet]
-        public async Task<IEnumerable<Claim>> GetAsync()
-        {
-            return await _claimsContext.GetClaimsAsync();
-        }
-
-        [HttpPost]
-        public async Task<ActionResult> CreateAsync(Claim claim)
-        {
-            claim.Id = Guid.NewGuid().ToString();
-            await _claimsContext.AddItemAsync(claim);
-            _auditer.AuditClaim(claim.Id, "POST");
-            return Ok(claim);
-        }
-
-        [HttpDelete("{id}")]
-        public async Task DeleteAsync(string id)
-        {
-            _auditer.AuditClaim(id, "DELETE");
-            await _claimsContext.DeleteItemAsync(id);
-        }
-
-        [HttpGet("{id}")]
-        public async Task<Claim> GetAsync(string id)
-        {
-            return await _claimsContext.GetClaimAsync(id);
-        }
+        _claimsService = claimsService;
     }
 
-    public class ClaimsContext : DbContext
+    /// <summary>
+    /// Retrieves all claims.
+    /// </summary>
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<ClaimResponse>>> GetAsync()
     {
+        var claims = await _claimsService.GetAllAsync();
+        return Ok(claims);
+    }
 
-        private DbSet<Claim> Claims { get; init; }
-        public DbSet<Cover>  Covers { get; init; }
+    /// <summary>
+    /// Retrieves a single claim by its identifier.
+    /// </summary>
+    /// <param name="id">The unique claim identifier.</param>
+    [HttpGet("{id}")]
+    public async Task<ActionResult<ClaimResponse>> GetAsync(string id)
+    {
+        var claim = await _claimsService.GetByIdAsync(id);
+        if (claim is null)
+            return NotFound();
 
-        public ClaimsContext(DbContextOptions options)
-            : base(options)
-        {
-        }
+        return Ok(claim);
+    }
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            base.OnModelCreating(modelBuilder);
-            modelBuilder.Entity<Claim>().ToCollection("claims");
-            modelBuilder.Entity<Cover>().ToCollection("covers");
-        }
+    /// <summary>
+    /// Creates a new claim.
+    /// </summary>
+    /// <param name="request">The claim creation request.</param>
+    [HttpPost]
+    public async Task<ActionResult<ClaimResponse>> CreateAsync(CreateClaimRequest request)
+    {
+        var created = await _claimsService.CreateAsync(request);
+        return Ok(created);
+    }
 
-        public async Task<IEnumerable<Claim>> GetClaimsAsync()
-        {
-            return await Claims.ToListAsync();
-        }
-
-        public async Task<Claim> GetClaimAsync(string id)
-        {
-            return await Claims
-                .Where(claim => claim.Id == id)
-                .SingleOrDefaultAsync();
-        }
-
-        public async Task AddItemAsync(Claim item)
-        {
-            Claims.Add(item);
-            await SaveChangesAsync();
-        }
-
-        public async Task DeleteItemAsync(string id)
-        {
-            var claim = await GetClaimAsync(id);
-            if (claim is not null)
-            {
-                Claims.Remove(claim);
-                await SaveChangesAsync();
-            }
-        }
+    /// <summary>
+    /// Deletes a claim by its identifier.
+    /// </summary>
+    /// <param name="id">The unique claim identifier.</param>
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteAsync(string id)
+    {
+        await _claimsService.DeleteAsync(id);
+        return NoContent();
     }
 }
